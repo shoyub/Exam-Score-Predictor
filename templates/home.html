@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Exam Performance Predictor</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --ink: #0d0d12;
+        --paper: #f7f5f0;
+        --accent: #e84c2b;
+        --accent2: #3a5cff;
+        --gold: #f5a623;
+        --surface: #ffffff;
+        --border: #e2ddd8;
+        --muted: #8a8680;
+        --success-bg: #edfaf3;
+        --success-border: #2bc47a;
+        --radius: 14px;
+      }
+
+      body {
+        font-family: "DM Sans", sans-serif;
+        background-color: var(--paper);
+        color: var(--ink);
+        min-height: 100vh;
+        padding: 40px 20px 80px;
+        background-image:
+          radial-gradient(
+            circle at 15% 20%,
+            rgba(232, 76, 43, 0.07) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 85% 75%,
+            rgba(58, 92, 255, 0.07) 0%,
+            transparent 50%
+          );
+      }
+
+      /* ── PAGE HEADER ── */
+      .page-header {
+        max-width: 760px;
+        margin: 0 auto 40px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .page-header-left h1 {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+      }
+      .page-header-left h1 span {
+        color: var(--accent);
+      }
+      .page-header-left p {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 0.95rem;
+        font-weight: 300;
+      }
+      .version-tag {
+        font-family: "Syne", sans-serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border: 1.5px solid var(--border);
+        border-radius: 100px;
+        padding: 5px 14px;
+        white-space: nowrap;
+      }
+
+      /* ── MODEL BANNER ── */
+      .model-banner {
+        max-width: 760px;
+        margin: 0 auto 28px;
+        background: var(--ink);
+        color: #fff;
+        border-radius: var(--radius);
+        padding: 20px 24px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 16px;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+      }
+      .model-banner::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(58, 92, 255, 0.25) 0%,
+          transparent 60%
+        );
+        pointer-events: none;
+      }
+      .model-banner-label {
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 4px;
+      }
+      .model-banner-name {
+        font-family: "Syne", sans-serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+      }
+      .model-banner-score {
+        text-align: right;
+      }
+      .model-banner-score .score-val {
+        font-family: "Syne", sans-serif;
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--gold);
+        line-height: 1;
+      }
+      .model-banner-score .score-label {
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.45);
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+      .best-chip {
+        display: inline-block;
+        background: var(--accent);
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: 100px;
+        margin-left: 10px;
+        vertical-align: middle;
+      }
+
+      /* ── MODEL COMPARISON TABLE ── */
+      .card {
+        max-width: 760px;
+        margin: 0 auto 28px;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .card-header {
+        padding: 18px 24px 14px;
+        border-bottom: 1.5px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .card-header h3 {
+        font-family: "Syne", sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent2);
+        flex-shrink: 0;
+      }
+
+      .model-row {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 24px;
+        border-bottom: 1px solid var(--border);
+        transition: background 0.15s;
+      }
+      .model-row:last-child {
+        border-bottom: none;
+      }
+      .model-row:hover {
+        background: #fafaf8;
+      }
+      .model-row.best {
+        background: linear-gradient(
+          90deg,
+          rgba(58, 92, 255, 0.05) 0%,
+          transparent 100%
+        );
+      }
+      .model-row.best .model-name {
+        font-weight: 600;
+        color: var(--accent2);
+      }
+      .model-name {
+        font-size: 0.88rem;
+        color: #333;
+      }
+      .score-bar-wrap {
+        width: 120px;
+        height: 5px;
+        background: var(--border);
+        border-radius: 99px;
+        overflow: hidden;
+      }
+      .score-bar-fill {
+        height: 100%;
+        border-radius: 99px;
+        background: var(--accent2);
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .best .score-bar-fill {
+        background: var(--accent);
+      }
+      .score-num {
+        font-family: "Syne", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        min-width: 52px;
+        text-align: right;
+        color: var(--ink);
+      }
+
+      /* ── FORM CARD ── */
+      .form-card {
+        max-width: 760px;
+        margin: 0 auto 28px;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .form-card .card-header {
+        padding: 20px 28px 16px;
+      }
+      .form-body {
+        padding: 24px 28px 28px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      @media (max-width: 560px) {
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+      .field.full {
+        grid-column: 1 / -1;
+      }
+
+      label {
+        font-size: 0.78rem;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      select,
+      input[type="number"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 100%;
+        padding: 11px 16px;
+        border: 1.5px solid var(--border);
+        border-radius: 9px;
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.92rem;
+        color: var(--ink);
+        background: var(--paper);
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+        outline: none;
+      }
+      select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a8680' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        padding-right: 38px;
+      }
+      select:focus,
+      input[type="number"]:focus {
+        border-color: var(--accent2);
+        box-shadow: 0 0 0 3px rgba(58, 92, 255, 0.1);
+        background: var(--surface);
+      }
+      input[type="number"]::placeholder {
+        color: #bbb;
+      }
+      select option[disabled] {
+        color: #bbb;
+      }
+
+      .score-inputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      @media (max-width: 560px) {
+        .score-inputs {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .divider {
+        border: none;
+        border-top: 1.5px dashed var(--border);
+        margin: 22px 0;
+      }
+
+      .submit-btn {
+        width: 100%;
+        padding: 15px 24px;
+        background: var(--ink);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-family: "Syne", sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          transform 0.1s;
+        margin-top: 8px;
+      }
+      .submit-btn:hover {
+        background: #1a1a24;
+      }
+      .submit-btn:active {
+        transform: scale(0.99);
+      }
+
+      /* ── RESULT ── */
+      .result-card {
+        max-width: 760px;
+        margin: 0 auto 28px;
+        border-radius: var(--radius);
+        overflow: hidden;
+        border: 1.5px solid var(--success-border);
+        background: var(--success-bg);
+        padding: 28px 32px;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        animation: slide-in 0.4s ease;
+      }
+      @keyframes slide-in {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .result-icon {
+        font-size: 2.4rem;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+      .result-label {
+        font-size: 0.78rem;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--success-border);
+        margin-bottom: 4px;
+      }
+      .result-score {
+        font-family: "Syne", sans-serif;
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: var(--ink);
+        line-height: 1;
+      }
+      .result-sub {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      /* ── FOOTER ── */
+      footer {
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.78rem;
+        margin-top: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>Exam Score<br /><span>Predictor</span></h1>
+      </div>
+    </div>
+
+    <!-- Model Banner -->
+    <div class="model-banner">
+      <div>
+        <div class="model-banner-label">Active Model</div>
+        <div class="model-banner-name">
+          {{ model_name }}<span class="best-chip">Best</span>
+        </div>
+      </div>
+      <div class="model-banner-score">
+        <div class="score-val">{{ "%.4f"|format(model_score) }}</div>
+        <div class="score-label">R² Score</div>
+      </div>
+    </div>
+
+    <!-- Model Comparison -->
+    {% if all_models %}
+    <div class="card">
+      <div class="card-header">
+        <div class="dot"></div>
+        <h3>All Models — Performance Comparison</h3>
+      </div>
+      {% for model_name_item, score in all_models.items() %}
+      <div
+        class="model-row {% if model_name_item == model_name %}best{% endif %}"
+      >
+        <div class="model-name">
+          {% if model_name_item == model_name %}⭐ {% endif %}{{ model_name_item
+          }}
+        </div>
+        <div class="score-bar-wrap">
+          <div
+            class="score-bar-fill"
+            style="width: {{ (score * 100)|round(1) }}%"
+          ></div>
+        </div>
+        <div class="score-num">{{ "%.4f"|format(score) }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Form -->
+    <div class="form-card">
+      <div class="card-header">
+        <div class="dot" style="background: var(--accent)"></div>
+        <h3>Student Information</h3>
+      </div>
+      <div class="form-body">
+        <form action="{{ url_for('home') }}" method="post">
+          <div class="form-grid">
+            <div class="field">
+              <label for="gender">Gender</label>
+              <select id="gender" name="gender" required>
+                <option disabled selected value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="ethnicity">Race / Ethnicity</label>
+              <select id="ethnicity" name="ethnicity" required>
+                <option disabled selected value="">Select group</option>
+                <option value="group A">Group A</option>
+                <option value="group B">Group B</option>
+                <option value="group C">Group C</option>
+                <option value="group D">Group D</option>
+                <option value="group E">Group E</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="parent_edu">Parental Education</label>
+              <select
+                id="parent_edu"
+                name="parental_level_of_education"
+                required
+              >
+                <option disabled selected value="">Select level</option>
+                <option value="associate's degree">Associate's degree</option>
+                <option value="bachelor's degree">Bachelor's degree</option>
+                <option value="high school">High school</option>
+                <option value="master's degree">Master's degree</option>
+                <option value="some college">Some college</option>
+                <option value="some high school">Some high school</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="lunch">Lunch Type</label>
+              <select id="lunch" name="lunch" required>
+                <option disabled selected value="">Select type</option>
+                <option value="free/reduced">Free / Reduced</option>
+                <option value="standard">Standard</option>
+              </select>
+            </div>
+
+            <div class="field full">
+              <label for="test_course">Test Preparation Course</label>
+              <select id="test_course" name="test_preparation_course" required>
+                <option disabled selected value="">Select status</option>
+                <option value="none">None</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+
+          <hr class="divider" />
+
+          <div class="score-inputs">
+            <div class="field">
+              <label for="reading_score"
+                >Writing Score
+                <span style="font-size: 0.7rem; color: #bbb">/ 100</span></label
+              >
+              <input
+                id="reading_score"
+                type="number"
+                name="reading_score"
+                placeholder="e.g. 72"
+                min="0"
+                max="100"
+              />
+            </div>
+            <div class="field">
+              <label for="writing_score"
+                >Reading Score
+                <span style="font-size: 0.7rem; color: #bbb">/ 100</span></label
+              >
+              <input
+                id="writing_score"
+                type="number"
+                name="writing_score"
+                placeholder="e.g. 68"
+                min="0"
+                max="100"
+              />
+            </div>
+          </div>
+
+          <button class="submit-btn" type="submit">
+            Predict Maths Score →
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Result -->
+    {% if results %}
+    <div class="result-card">
+      <div class="result-icon">🎯</div>
+      <div>
+        <div class="result-label">Predicted Maths Score</div>
+        <div class="result-score">
+          {{ "%.2f"|format(results) }}<span
+            style="font-size: 1.2rem; color: var(--muted); font-weight: 400"
+          >
+            / 100</span
+          >
+        </div>
+        <div class="result-sub">Based on the information provided above</div>
+      </div>
+    </div>
+    {% endif %}
+  </body>
+</html>
