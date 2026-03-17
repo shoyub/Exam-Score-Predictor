@@ -1,13 +1,13 @@
 {
     "best_model_name": "Linear Regression",
-    "best_model_score": 0.8804332983749564,
+    "best_model_score": 0.8804332983749565,
     "all_models": {
-        "Random Forest": 0.8558694625537049,
-        "Decision Tree": 0.7193003652526687,
-        "Gradient Boosting": 0.8732987135040614,
-        "Linear Regression": 0.8804332983749564,
+        "Random Forest": 0.8508747646750421,
+        "Decision Tree": 0.7529571986994243,
+        "Gradient Boosting": 0.8726949300622093,
+        "Linear Regression": 0.8804332983749565,
         "XGBRegressor": 0.8492434722253639,
         "CatBoosting Regressor": 0.8613734525258083,
-        "AdaBoost Regressor": 0.8552721557108702
+        "AdaBoost Regressor": 0.8480531347875154
     }
 }
